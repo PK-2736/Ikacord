@@ -1,0 +1,9 @@
+discord.py
+beautifulsoup4
+py-cord
+pynacl
+google-cloud-texttospeech
+python-dotenv
+requests
+numpy
+tweepy

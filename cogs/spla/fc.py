@@ -49,8 +49,8 @@ class fc(commands.Cog):
     #     file.close()
 
 
-    @fc.command(guild_ids=guild_ids, description="自分のフレンドコードをセットします")
-    async def 登録(self, ctx, *, friendcode: Option(str, "例：1111-1111-1111")):
+    @fc.command(name="登録", guild_ids=guild_ids, description="自分のフレンドコードをセットします")
+    async def register(self, ctx, *, friendcode: Option(str, "例：1111-1111-1111")):
         discordname = ctx.author.id
         file = open("data/friendcodes.txt", "a")
         file.write(f'<@{discordname}> ')
@@ -62,8 +62,8 @@ class fc(commands.Cog):
                           )
         await ctx.respond(embed=embed)
 
-    @fc.command(guild_ids=guild_ids, description="特定の人のフレンドコードを表示します")
-    async def 検索(self, ctx, member: Option(str, "例：@PheyK")):
+    @fc.command(name="検索", guild_ids=guild_ids, description="特定の人のフレンドコードを表示します")
+    async def search(self, ctx, member: Option(str, "例：@PheyK")):
         searchfile = open("data/friendcodes.txt", "r")
         member = member.replace('!', '')
         print(member)
@@ -79,8 +79,8 @@ class fc(commands.Cog):
         await ctx.respond(embed=embed)
         searchfile.close()
 
-    @fc.command(guild_ids=guild_ids, description="登録しているフレンドコードを削除します")
-    async def 削除(self, ctx, member: Option(str, "例：@PheyK"), fc: Option(str, "例：1111-1111-1111")):
+    @fc.command(name="削除", guild_ids=guild_ids, description="登録しているフレンドコードを削除します")
+    async def delete(self, ctx, member: Option(str, "例：@PheyK"), fc: Option(str, "例：1111-1111-1111")):
         with open("data/friendcodes.txt", "r") as f:
             lines = f.readlines()
             print(lines)

@@ -19,7 +19,7 @@ class uihelp(discord.ui.View):
         ],
     )
     async def select_callback(self, select, interaction):
-        if select.values[0] == "スプラ3ステージコマンド":
+        if select.values[0] == "スプラコマンド":
             embed = discord.Embed( 
                           title="スプラコマンド",
                           color=0x76d8be, 
@@ -30,6 +30,7 @@ class uihelp(discord.ui.View):
             embed.add_field(name='レギュラー', value='/ステージ レギュラー', inline=False)
             embed.add_field(name='サーモンラン', value='/ステージ サーモンラン', inline=False)
             embed.add_field(name='ランダムに武器を表示', value='/武器', inline=False)
+            embed.add_field(name='ブランド別ギア表を表示', value='/ギア表', inline=False)
             await interaction.response.edit_message(embed=embed)
 
         elif select.values[0] == "フレンドコードコマンド":
@@ -38,9 +39,9 @@ class uihelp(discord.ui.View):
                           color=0xe7ad5b, 
                           url="https://example.com"
                           )
-            embed.add_field(name='フレンドコードを保存する', value='/フレコ 登録 (自分のフレンドコード）', inline=True)
-            embed.add_field(name='フレンドコードを検索する', value='/フレコ 検索 (対象の人をメンション)', inline=True)
-            embed.add_field(name='自分のフレンドコードを削除する', value='/フレコ 削除 (自分をメンション) (自分のフレンドコード)', inline=True)         
+            embed.add_field(name='フレンドコードを保存する', value='/フレコ 登録 (自分のフレンドコード）', inline=False)
+            embed.add_field(name='フレンドコードを検索する', value='/フレコ 検索 (対象の人をメンション)', inline=False)
+            embed.add_field(name='自分のフレンドコードを削除する', value='/フレコ 削除 (自分をメンション) (自分のフレンドコード)', inline=False)         
             await interaction.response.edit_message(embed=embed)
 
         elif select.values[0] == "募集コマンド":
@@ -81,9 +82,9 @@ class help(commands.Cog):
         self.bot = bot
         self.bot.remove_command('help')
 
-    @slash_command(guild_ids=guild_ids, description="コマンドのHELPを表示します")
-    async def ヘルプ(self, ctx):
-            await ctx.respond(f"{ctx.author.mention} コマンド一覧です", view=uihelp())
+    @slash_command(name="ヘルプ", guild_ids=guild_ids, description="コマンドのHELPを表示します")
+    async def help(self, ctx):
+            await ctx.respond(f"{ctx.author.mention} コマンド一覧です",view=uihelp(),ephemeral = True)
 
 def setup(bot):
     bot.add_cog(help(bot))

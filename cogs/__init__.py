@@ -1,1 +1,1 @@
-guild_ids = ['guild id']
+guild_ids = ['802345513495822336']

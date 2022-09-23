@@ -9,7 +9,7 @@ import json
 from cogs import guild_ids
 
 print("spla3の読み込み完了")
-dt = datetime.datetime.now()
+dt = datetime.now()
 
 class Splatoon3(commands.Cog):
     def __init__(self, bot):
@@ -119,10 +119,11 @@ class Splatoon3(commands.Cog):
 
         await ctx.respond(embed=league_embed,ephemeral = True)
 
-    @spla3.command(guild_ids = guild_ids, description='サーモンランのステージ情報を取得します。準備中')
+    @spla3.command(guild_ids = guild_ids, description='サーモンランのステージ情報を取得します。')
     async def サーモンラン(self, ctx):
 
-        url = "https://spla2.yuu26.com/coop/schedule"
+        url = "https://spla3.yuu26.com/api/coop-grouping-regular/now"
+        url2 = "https://spla3.yuu26.com/api/coop-grouping-regular/next"
         ua = "Splatoon3/ikacord bot (twitter @Mt_PheyK, Discord PheyK#1280"
         headers = {"User-Agent": ua}
 
@@ -131,38 +132,32 @@ class Splatoon3(commands.Cog):
 
         # 現在のサーモンランのデータを取得
 
-        salmon_map   = jsonData["result"][0]["stage"]["name"]
-        salmon_wpn_1 = jsonData["result"][0]["weapons"][0]["name"]
-        salmon_wpn_2 = jsonData["result"][0]["weapons"][1]["name"]
-        salmon_wpn_3 = jsonData["result"][0]["weapons"][2]["name"]
-        salmon_wpn_4 = jsonData["result"][0]["weapons"][3]["name"]
-        salmon_logo  = jsonData["result"][0]["stage"]["image"]
+        salmon_map   = jsonData["results"][0]["stage"]["name"]
+        salmon_wpn_1 = jsonData["results"][0]["weapons"][0]["name"]
+        salmon_wpn_2 = jsonData["results"][0]["weapons"][1]["name"]
+        salmon_wpn_3 = jsonData["results"][0]["weapons"][2]["name"]
+        salmon_wpn_4 = jsonData["results"][0]["weapons"][3]["name"]
 
-        salmon_time_epoch = jsonData["result"][0]["end_t"]  # 今のサーモンランが終了する時間を取得
-        salmon_time = datetime.datetime.fromtimestamp(salmon_time_epoch)  # Unix時間からJSTに変換
 
-        # 次のサーモンランのデータを取得
+        response = requests.get(url2)
+        jsonData = response.json()
 
-        salmon_nextMap   = jsonData["result"][1]["stage"]["name"]
-        salmon_nextWpn_1 = jsonData["result"][1]["weapons"][0]["name"]
-        salmon_nextWpn_2 = jsonData["result"][1]["weapons"][1]["name"]
-        salmon_nextWpn_3 = jsonData["result"][1]["weapons"][2]["name"]
-        salmon_nextWpn_4 = jsonData["result"][1]["weapons"][3]["name"]
-
-        salmon_nextTime_epoch = jsonData["result"][1]["start_t"]  # 次のサーモンランが始まる時間を取得
-        salmon_nextTime = datetime.datetime.fromtimestamp(salmon_nextTime_epoch)  # Unix時間からJSTに変換
+        salmon_map2   = jsonData["results"][0]["stage"]["name"]
+        salmon_wpn_5 = jsonData["results"][0]["weapons"][0]["name"]
+        salmon_wpn_6 = jsonData["results"][0]["weapons"][1]["name"]
+        salmon_wpn_7 = jsonData["results"][0]["weapons"][2]["name"]
+        salmon_wpn_8 = jsonData["results"][0]["weapons"][3]["name"]
 
         salmon_embed = discord.Embed(
                                     title = "サーモンラン",
-                                    color = 0xff7f50,
-                                    description=f"{dt.strftime('%Y年%m月%d日 %H:%M:%S')}時点のブキとステージ情報\n\nいまのは**{salmon_time.strftime('%Y年%m月%d日 %H:%M:%S')}**まで継続\nつぎのは**{salmon_nextTime.strftime('%Y年%m月%d日 %H:%M:%S')}**にて開始")
+                                    color = 0xff7f50)
         salmon_embed.add_field(name=f"ブキ: {salmon_wpn_1}, {salmon_wpn_2}, {salmon_wpn_3}, {salmon_wpn_4}",
                                value=f"ステージ: **{salmon_map}**",
                                inline=False)
-        salmon_embed.add_field(name=f"次のブキ: {salmon_nextWpn_1}, {salmon_nextWpn_2}, {salmon_nextWpn_3}, {salmon_nextWpn_4}",
-                               value=f"ステージ: **{salmon_nextMap}**",
+        salmon_embed.add_field(name=f"ブキ: {salmon_wpn_5}, {salmon_wpn_6}, {salmon_wpn_7}, {salmon_wpn_8}",
+                               value=f"ステージ: **{salmon_map2}**",
                                inline=False)
-        salmon_embed.set_thumbnail(url=f"{salmon_logo}")
+        salmon_embed.set_thumbnail(url="https://cdn.wikimg.net/en/splatoonwiki/images/thumb/1/13/S2_Band_Grizzco_Industries.jpg/251px-S2_Band_Grizzco_Industries.jpg")
         salmon_embed.set_footer(text="API: https://spla3.yuu26.com")
 
         await ctx.respond(embed=salmon_embed,ephemeral = True)

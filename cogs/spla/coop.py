@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord.ui import Button, View, Item
 from datetime import datetime
 from discord.commands import slash_command, Option
+import requests
 
 from cogs import guild_ids
 
@@ -129,7 +130,45 @@ class CustomView(View):
         custom_id="stage"
     )
     async def callback_stage(self, button: Button, interaction: discord.Interaction):
-        await interaction.response.send_message("近日公開予定",ephemeral = True)
+        url = "https://spla3.yuu26.com/api/coop-grouping-regular/now"
+        url2 = "https://spla3.yuu26.com/api/coop-grouping-regular/next"
+        ua = "Splatoon3/ikacord bot (twitter @Mt_PheyK, Discord PheyK#1280"
+        headers = {"User-Agent": ua}
+
+        response = requests.get(url)
+        jsonData = response.json()
+
+        # 現在のサーモンランのデータを取得
+
+        salmon_map   = jsonData["results"][0]["stage"]["name"]
+        salmon_wpn_1 = jsonData["results"][0]["weapons"][0]["name"]
+        salmon_wpn_2 = jsonData["results"][0]["weapons"][1]["name"]
+        salmon_wpn_3 = jsonData["results"][0]["weapons"][2]["name"]
+        salmon_wpn_4 = jsonData["results"][0]["weapons"][3]["name"]
+
+
+        response = requests.get(url2)
+        jsonData = response.json()
+
+        salmon_map2   = jsonData["results"][0]["stage"]["name"]
+        salmon_wpn_5 = jsonData["results"][0]["weapons"][0]["name"]
+        salmon_wpn_6 = jsonData["results"][0]["weapons"][1]["name"]
+        salmon_wpn_7 = jsonData["results"][0]["weapons"][2]["name"]
+        salmon_wpn_8 = jsonData["results"][0]["weapons"][3]["name"]
+
+        salmon_embed = discord.Embed(
+                                    title = "サーモンラン",
+                                    color = 0xff7f50)
+        salmon_embed.add_field(name=f"ブキ: {salmon_wpn_1}, {salmon_wpn_2}, {salmon_wpn_3}, {salmon_wpn_4}",
+                               value=f"ステージ: **{salmon_map}**",
+                               inline=False)
+        salmon_embed.add_field(name=f"ブキ: {salmon_wpn_5}, {salmon_wpn_6}, {salmon_wpn_7}, {salmon_wpn_8}",
+                               value=f"ステージ: **{salmon_map2}**",
+                               inline=False)
+        salmon_embed.set_thumbnail(url="https://cdn.wikimg.net/en/splatoonwiki/images/thumb/1/13/S2_Band_Grizzco_Industries.jpg/251px-S2_Band_Grizzco_Industries.jpg")
+        salmon_embed.set_footer(text="API: https://spla3.yuu26.com")
+
+        await interaction.response.send_message(embed=salmon_embed,ephemeral = True)
 
 class MyModalc(discord.ui.Modal):
     def __init__(self, *args, **kwargs) -> None:

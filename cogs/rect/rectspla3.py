@@ -149,18 +149,18 @@ class rectspla3(discord.ui.Modal):
         embed.set_footer(text='イカコード3|スプラ募集')
         await interaction.response.send_message(f"<@&983297498271580170>: {spla3.is_persistent(spla3())}", embed=embed, view=spla3())
 
-class rectspla3(commands.Cog):
+class rectspla(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @slash_command(name="募集スプラ",guild_ids=guild_ids, description="スプラ関連なんでも募集")
     async def rectspla3(self, interaction: discord.Interaction):
-        if interaction.channel.id not in [982602254278357022, 981474117020712973, 1007288564247179347, 1011555949837824001, 1011556210719338537, 1011556131786735677, 802345513495822339, 982602254278357022]:
-            return await interaction.respond("エラー：募集コマンドを実行出来るのは <#981474117020712973> だけです。")
+        if interaction.channel.id not in [981474117020712973,1027901079368761426,1027901127099953152,1027901192724029440,1027901157076631582]:
+            return await interaction.respond("エラー：スプラ募集コマンドは <#981474117020712973> で実行して下さい。",ephemeral = True)
         modal = rectspla3(title="募集の詳細を説明")
         await interaction.response.send_modal(modal)
 
 def setup(bot: commands.Bot):
-    bot.add_cog(spla3(bot=bot))
+    bot.add_cog(rectspla(bot=bot))
         
 

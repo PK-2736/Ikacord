@@ -194,8 +194,8 @@ class bankara(commands.Cog):
 
     @slash_command(name="募集バンカラ",guild_ids=guild_ids, description="バンカラマッチメンバーの募集")
     async def rectbankara(self, interaction: discord.Interaction):
-        if interaction.channel.id not in [981474117020712973, 1007288564247179347, 1011555949837824001, 1011556210719338537, 1011556131786735677, 802345513495822339]:
-            return await interaction.respond("エラー：募集コマンドを実行出来るのは <#981474117020712973> だけです。")
+        if interaction.channel.id not in [1027901127099953152,981474117020712973]:
+            return await interaction.respond("エラー：バンカラ募集コマンドは <#1027901127099953152> で実行して下さい。",ephemeral = True)
         modal = rectbankara(title="募集の詳細を説明")
         await interaction.response.send_modal(modal)
 

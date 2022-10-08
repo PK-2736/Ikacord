@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import SlashCommand, Option, SlashCommandGroup, option, OptionChoice, AllowedMentions
 import config
-from bs4 import BeautifulSoup as soup
 from datetime import datetime, timedelta, timezone
 from discord import Button, ButtonStyle, SelectMenu, SelectOption
 from cogs import guild_ids
@@ -56,8 +55,17 @@ async def on_member_remove(member) :
 #cogs reload
 
 #bot.load_extension("cogs.test")
+#bot.load_extension("cogs.test2")
 
 bot.load_extension("cogs.help.help")
+bot.load_extension("cogs.help.botuse")
+bot.load_extension("cogs.help.description")
+bot.load_extension("cogs.help.rule")
+
+bot.load_extension("cogs.stage.regularstage")
+bot.load_extension("cogs.stage.bankarachallengestage")
+bot.load_extension("cogs.stage.bankaraopenstage")
+bot.load_extension("cogs.stage.coopstage")
 
 bot.load_extension("cogs.rect.private")
 bot.load_extension("cogs.rect.bankara-open")
@@ -67,6 +75,7 @@ bot.load_extension("cogs.rect.rectspla3")
 bot.load_extension("cogs.rect.festival")
 
 bot.load_extension("cogs.spla.spla3")
+bot.load_extension("cogs.spla.gear")
 bot.load_extension("cogs.spla.fc")
 
 #bot.load_extension("cogs.Twitter")

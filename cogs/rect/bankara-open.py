@@ -1,11 +1,16 @@
-from types import NoneType
+from email import message
 import discord
 from discord.ext import commands
+from discord.commands import slash_command, Option
+import io
+import re
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw
 from discord.ui import Button, View, Item
 from datetime import datetime
-from discord.commands import slash_command, Option
+import textwrap
 import requests
-import re
 
 from cogs import guild_ids
 
@@ -15,98 +20,75 @@ class spla3(View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    def add_embed(self, interaction: discord.Interaction):
-        # メッセージの先頭にあるembedを取得
-        embed = interaction.message.embeds[0]
-        # embedを追加する必要があるかの初期設定 (必要アリ。)
-        flag = True
-        # mebedが存在する場合
-        if embed:
-            # embedの数が0個の時、
-            if len(embed.fields) == 5:
-                # 自分を追加して返す
-                return embed.add_field(name=f"参加者", value=f"{interaction.user.mention} {datetime.now().strftime('%H:%M')}", inline=True)
-
-            for idlist in embed.fields[5].value.split("\n"):
-                # フィールドの中にあるidと一致するか比較
-                match = re.search(f"{interaction.user.id}",idlist)
-                if match:
-                        #一致したらflagをfalseに
-                        flag = False
-                        # 終了
-                        return embed
-
-            # もしflagがtrue (最初のflag)なら
-            if flag:
-                # メンションを追加
-                summon_users = [interaction.user.mention]
-                cm = embed.fields[5].value
-                tmp = "\n".join([str(user) for user in summon_users])
-                summon = tmp if tmp else "なし"
-                time = datetime.now().strftime("%H:%M")
-                embed.set_field_at(5,name="参加者リスト", value=f"{cm}\n{summon} {time}", inline=False)
-                    
-        # embedを返す
-        return embed
-
     @discord.ui.button(
         style=discord.ButtonStyle.green,
         label="参加",
         custom_id="join"
     )
     async def callback_join(self, button: Button, interaction: discord.Interaction):
-        for child in self.children: # loop through all the children of the view
-            child.disabled = True # set the button to disabled
-        embed = self.add_embed(interaction=interaction)
-        await interaction.response.edit_message(embed=embed)
-        embed = discord.Embed()
-        embed.set_author(name=f"{interaction.user.name}が参加しました", icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
-        await interaction.message.reply(f"{interaction.message.interaction.user.mention}{interaction.user.mention}", embed=embed, delete_after=120.0)
-
-    def remove_embed(self, interaction: discord.Interaction):  
-        embed = interaction.message.embeds[0]     
+        for child in self.children: 
+            child.disabled = True 
+        embed = interaction.message.embeds[0]
         flag = True
-        # mebedが存在する場合
         if embed:
-            # embedの数が0個の時、
-            if len(embed.fields) == 5:
-                return embed.add_field(name="不参加者リスト", value=f"{interaction.user.mention} {datetime.now().strftime('%H:%M')}", inline=False)
+            if len(embed.fields) == 0:
+                return embed.add_field(name=f"参加者リスト", value=f"{interaction.user.mention} {datetime.now().strftime('%H:%M')}", inline=True)
 
-        for idlist in embed.fields[5].value.split("\n"):
-                # フィールドの中にあるidと一致するか比較
-                    match = re.search(f"{interaction.user.id}",idlist)
-        if match:
-                        #一致したらflagをfalseに
-                        flag = False
-                        # 終了
-                        return embed
+            for idlist in embed.fields[0].value.split("\n"):
+                match = re.search(f"{interaction.user.id}",idlist)
 
-            # もしflagがtrue (最初のflag)なら
-        if flag:
-                # メンションを追加
-                summon_users = [interaction.user.mention]
-                cm = embed.fields[5].value
-                tmp = "\n".join([str(user) for user in summon_users])
+            if match:
+                flag = False
+                embed2 = discord.Embed(description=f"{interaction.user.name}は既に参加しています")
+                await interaction.response.send_message(embed=embed2,ephemeral = True)
+                return embed
+
+            if flag:
+                users = [interaction.user.mention]
+                cm = embed.fields[0].value
+                tmp = "\n".join([str(user) for user in users])
                 summon = tmp if tmp else "なし"
-                time = f"**{datetime.now().strftime('%H:%M')}**"
-                embed.set_field_at(5,name="不参加者リスト", value=f"{cm}\n{summon} {time}", inline=False)
-                    
-        # embedを返す
-        return embed
-                 
+                time = datetime.now().strftime("%H:%M")
+                embed.set_field_at(0,name="参加者リスト", value=f"{cm}\n{summon} {time}", inline=False)
+                await interaction.response.edit_message(embed=embed)
+                embed = discord.Embed()
+                embed.set_author(name=f"{interaction.user.name}が参加しました", icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
+                await interaction.message.reply(f"{interaction.message.interaction.user.mention}{interaction.user.mention}", embed=embed, delete_after=120.0)                
+
     @discord.ui.button(
         style=discord.ButtonStyle.blurple,
         label="取り消し",
         custom_id="remove"
     )
     async def callback_remove(self, button: Button, interaction: discord.Interaction):
-        for child in self.children: # loop through all the children of the view
-            child.disabled = True # set the button to disabled
-        embed = self.remove_embed(interaction=interaction)
-        await interaction.response.edit_message(embed=embed)
-        embed = discord.Embed()
-        embed.set_author(name=f"{interaction.user.name}が参加を取り消しました", icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
-        await interaction.message.reply(f"{interaction.message.interaction.user.mention}{interaction.user.mention}", embed=embed, delete_after=120.0)
+        for child in self.children: 
+            child.disabled = True
+        embed = interaction.message.embeds[0]     
+        flag = True
+        if embed:
+            if len(embed.fields) == 1:
+                return embed.add_field(name="不参加者リスト", value=f"{interaction.user.mention} {datetime.now().strftime('%H:%M')}", inline=False)
+
+            for idlist in embed.fields[1].value.split("\n"):
+                match = re.search(f"{interaction.user.id}",idlist)
+
+            if match:
+                flag = False
+                embed2 = discord.Embed(description=f"{interaction.user.name}は既に取り消しています")
+                await interaction.response.send_message(embed=embed2,ephemeral = True)
+                return embed
+
+            if flag:
+                summon_users = [interaction.user.mention]
+                cm = embed.fields[1].value
+                tmp = "\n".join([str(user) for user in summon_users])
+                summon = tmp if tmp else "なし"
+                time = datetime.now().strftime("%H:%M")
+                embed.set_field_at(1,name="不参加者リスト", value=f"{cm}\n{summon} {time}", inline=False)
+                await interaction.response.edit_message(embed=embed)
+                embed = discord.Embed()
+                embed.set_author(name=f"{interaction.user.name}が参加を取り消しました", icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
+                await interaction.message.reply(f"{interaction.message.interaction.user.mention}{interaction.user.mention}", embed=embed, delete_after=120.0)
 
     @discord.ui.button(
         style=discord.ButtonStyle.red,
@@ -115,8 +97,8 @@ class spla3(View):
     )
     async def callback_sime(self, button: Button, interaction: discord.Interaction):
         interaction.permissions.use_application_commands = True
-        for child in self.children: # loop through all the children of the view
-            child.disabled = True # set the button to disabled
+        for child in self.children: 
+            child.disabled = True 
         embed = discord.Embed()
         embed.set_author(name=f"{interaction.user.name}の募集〆", icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
         await interaction.message.reply(embed=embed)
@@ -128,76 +110,95 @@ class spla3(View):
         custom_id="stage"
     )
     async def callback_stage(self, button: Button, interaction: discord.Interaction):
-        url = "https://spla3.yuu26.com/api/bankara-open/now"
-        url_2 = "https://spla3.yuu26.com/api/bankara-open/next"
-        ua = "Splatoon3/ikacord bot (twitter @Mt_PheyK, Discord PheyK#1280"
-        headers = {"User-Agent": ua}
+            url = "https://spla3.yuu26.com/api/bankara-open/schedule"
+            ua = "Splatoon3/ikacord bot (twitter @Mt_PheyK, Discord PheyK#1280"
+            headers = {"User-Agent": ua}
+            response = requests.get(url)
+            jsonData = response.json()
+            rule = jsonData["results"][0]["rule"]["name"]
+            map = jsonData["results"][0]["stages"][0]["name"]
+            map2 = jsonData["results"][0]["stages"][1]["name"]
+            time = jsonData["results"][0]["start_time"]
+            time2 = jsonData["results"][0]["end_time"]
+            t = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S%z')
+            n = t.strftime('%H:%M')
+            t2 = datetime.strptime(time2, '%Y-%m-%dT%H:%M:%S%z')
+            n2 = t.strftime('%H:%M')
+            image = jsonData["results"][0]["stages"][0]["image"]
+            image2 = jsonData["results"][0]["stages"][1]["image"]
 
-        response = requests.get(url)
-        jsonData = response.json()
+            img = Image.new('RGB', (800,200), (0, 0, 0))
+            im1 = Image.open(io.BytesIO(requests.get(image).content))
+            im2 = Image.open(io.BytesIO(requests.get(image2).content))
+            img_binary = io.BytesIO()
+            img.paste(im1, (405,0))
+            img.paste(im2, (0,0))
+            img.save(img_binary, format='PNG')
+            img_binary.seek(0)
 
-        league_mode = jsonData["results"][0]["rule"]["name"]
-        league_map0 = jsonData["results"][0]["stages"][0]["name"]
-        league_map1 = jsonData["results"][0]["stages"][1]["name"]
+            embed = discord.Embed(
+                                        title = "バンカラオープン",
+                                        color=0xdb4a13,
 
-        response = requests.get(url_2)
-        jsonData = response.json()
+                                        description=f"**{n}から{n2}まで**\n\n**{rule}**\n\n**{map}**\n**{map2}**")
+            file = discord.File(img_binary, filename='image.png')
+            embed.set_image(url="attachment://image.png")
+            embed.set_thumbnail(url="http://cocohp.com/students/free2019/010/images/bt04.png")
+            embed.set_footer(text="API: https://spla3.yuu26.com| イカコード3")
 
-        league_nextmode = jsonData["results"][0]["rule"]["name"]
-        league_nextmap0 = jsonData["results"][0]["stages"][0]["name"]
-        league_nextmap1 = jsonData["results"][0]["stages"][1]["name"]
-
-        league_embed = discord.Embed(
-                                    title = "バンカラオープン",
-                                    color=0xffc0cb)
-        league_embed.add_field(name=f"いま: **{league_mode}**", value=f"つぎ: **{league_nextmode}**", inline=False)
-        league_embed.add_field(name=f"いま: **{league_map0}** / **{league_map1}**",
-                               value=f"つぎ: **{league_nextmap0}** / **{league_nextmap1}**",
-                               inline=False)
-        league_embed.set_thumbnail(url="http://cocohp.com/students/free2019/010/images/bt04.png")
-        league_embed.set_footer(text="API: https://spla3.yuu26.com")
-
-        await interaction.response.send_message(embed=league_embed,ephemeral = True)
+            await interaction.response.send_message(embed=embed,file=file,ephemeral = True)
 
 class rectbankara(discord.ui.Modal):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.add_item(discord.ui.InputText(label="募集人数"))
         self.add_item(discord.ui.InputText(label="時間", required=False))
+        self.add_item(discord.ui.InputText(label="募集人数"))
         self.add_item(discord.ui.InputText(label="通話の有無"))
-        self.add_item(discord.ui.InputText(label="募集ウデマエ", required=False))
         self.add_item(discord.ui.InputText(label="募集内容", style=discord.InputTextStyle.long, required=False))
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        img = Image.open("images/rect/bankara.png")
+        draw = ImageDraw.Draw(img) 
+        font_path = "data/LightNovelPOPv2.otf"
+        font = ImageFont.truetype(font_path, 80)
+        font2 = ImageFont.truetype(font_path, 80)
+        time = '' if self.children[0].value else "集まり次第"
+        draw.text((1150,380), f"{self.children[0].value}{time}" ,(0,0,0),font=font)
+        draw.text((1150,700), self.children[1].value ,(0,0,0),font=font)
+        draw.text((1150,1000), self.children[2].value ,(0,0,0),font=font)
+
+        content = '' if self.children[3].value else "記載なし"
+        wrap_list = textwrap.wrap(f"{self.children[3].value}{content}", 8)  
+        font2 = ImageFont.truetype(font_path, 70)  
+        line_counter = 0 
+        for line in wrap_list:
+            y = line_counter*80+600
+            draw.multiline_text((300, y),line, fill=(0,0,0), font=font2)
+            line_counter = line_counter +1 
+        img_binary = io.BytesIO()
+        img.save(img_binary, format='PNG')
+        img_binary.seek(0)
+        f = discord.File(img_binary, filename='image.png')
+
         embed = discord.Embed(
             timestamp=datetime.now(),
             color=0xdb4a13
         )
-        time = '' if self.children[1].value else "集まり次第"
-        a = '' if self.children[3].value else "記載なし"
-        i = '' if self.children[4].value else "記載なし"
-        embed.add_field(name="募集人数", value=self.children[0].value, inline=True)
-        embed.add_field(name="時間", value=f"{self.children[1].value}{time}", inline=True)
-        embed.add_field(name="通話の有無", value=self.children[2].value, inline=True)
-        embed.add_field(name="募集ウデマエ", value=f"{self.children[3].value}{a}", inline=True)
-        embed.add_field(name="募集内容", value=f"{self.children[4].value}{i}", inline=False)
-        embed.add_field(name="参加者", value=f"{interaction.user.mention} **{datetime.now().strftime('%H:%M')}**", inline=False)
-        embed.set_thumbnail(url="http://cocohp.com/students/free2019/010/images/bt04.png")
-        embed.set_author(name='バンカラマッチ募集 by %s' % interaction.user.name, icon_url=interaction.user.display_avatar.replace(format="png", static_format="png"))
+        embed.add_field(name="参加者リスト", value=f"{interaction.user.mention} {datetime.now().strftime('%H:%M')}", inline=False)
         embed.set_footer(text='イカコード3|スプラ募集')
-        await interaction.response.send_message(f"<@&983297498271580170>: {spla3.is_persistent(spla3())}", embed=embed, view=spla3())
+        await interaction.followup.send(f"@everyone: {spla3.is_persistent(spla3())}", embed=embed, file=f, view=spla3())
 
-class bankara(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class bankaracom(commands.Cog):
+    def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name="募集バンカラ",guild_ids=guild_ids, description="バンカラマッチメンバーの募集")
-    async def rectbankara(self, interaction: discord.Interaction):
-        if interaction.channel.id not in [1027901127099953152,981474117020712973]:
-            return await interaction.respond("エラー：バンカラ募集コマンドは <#1027901127099953152> で実行して下さい。",ephemeral = True)
+    @slash_command(name="募集バンカラ" ,guild_ids=guild_ids)
+    async def bankararect(self, interaction: discord.Interaction):     
         modal = rectbankara(title="募集の詳細を説明")
         await interaction.response.send_modal(modal)
 
 def setup(bot: commands.Bot):
-    bot.add_cog(bankara(bot=bot))
+    bot.add_cog(bankaracom(bot=bot))
